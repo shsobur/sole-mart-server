@@ -115,6 +115,19 @@ async function run() {
       res.send(result);
     })
 
+    // Make admin__ __ __!
+    app.patch("/make-seller/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)}
+      const updateDoc = {
+        $set: {
+          status: "approved"
+        }
+      }
+      const result = await userCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    })    
+
 
 
 
