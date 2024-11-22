@@ -39,6 +39,12 @@ async function run() {
       res.send(result);
     });
 
+    // Get all user__ __ __!
+    app.get("/users", async (req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    })
+
 
 
     // Get user data__ __ __!
