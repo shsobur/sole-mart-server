@@ -10,7 +10,11 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 // Middleware__
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "https://sole-mart.web.app",
+      "https://sole-mart.firebaseapp.com",
+    ],
     credentials: true,
     optionsSuccessStatus: 200,
   })
@@ -33,6 +37,14 @@ const verifyToken = (req, res, next) => {
     next();
   });
 };
+
+const cookieOptions =  {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production" ? true : false,
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+}
+
+
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.g4yea9q.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -57,11 +69,7 @@ async function run() {
         expiresIn: "10h",
       });
       res
-        .cookie("accessToken", token, {
-          httpOnly: true,
-          secure: true,
-          sameSite: "none",
-        })
+        .cookie("accessToken", token, cookieOptions)
         .send({ success: true });
     });
 
@@ -70,7 +78,7 @@ async function run() {
     app.post("/logout", async (req, res) => {
       const user = req.body;
       console.log(user);
-      res.clearCookie("accessToken", { maxAge: 0 }).send({ success: true });
+      res.clearCookie("accessToken", { ...cookieOptions, maxAge: 0 }).send({ success: true });
     });
 
     // Post signup users__ __!
@@ -173,10 +181,10 @@ async function run() {
       res.send(result);
     });
 
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+    // await client.db("admin").command({ ping: 1 });
+    // console.log(
+    //   "Pinged your deployment. You successfully connected to MongoDB!"
+    // );
   } finally {
     // Ensures that the client will close when you finish/error
   }
