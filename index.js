@@ -60,6 +60,8 @@ async function run() {
   try {
     const productCollection = client.db("solemart").collection("products");
     const userCollection = client.db("solemart").collection("users");
+    const cartCollection = client.db("solemart").collection("cart");
+    const wishListCollection = client.db("solemart").collection("wishList");
 
     // JWT__ __!
 
@@ -181,10 +183,59 @@ async function run() {
       res.send(result);
     });
 
-    // await client.db("admin").command({ ping: 1 });
-    // console.log(
-    //   "Pinged your deployment. You successfully connected to MongoDB!"
-    // );
+    // Post user cart__ __!
+    app.post("/cart", async (req, res) => {
+      const item = req.body;
+      const existingProduct = await cartCollection.findOne({id: item.id, userEmail: item.userEmail});
+      
+      if(existingProduct) {
+        res.send({ message: "already exists" });
+        return;
+      }
+
+      const result = await cartCollection.insertOne(item);
+      res.send(result);
+    })
+
+    // Post user wishList__ __!
+
+    app.post("/wish-list", async (req, res) => {
+      const item = req.body;
+      const existingProduct = await wishListCollection.findOne({id: item.id, email: item.email});
+
+      if(existingProduct) {
+        res.send({message: "already exists"});
+        return;
+      }
+
+      const result = await wishListCollection.insertOne(item);
+      res.send(result);
+    })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    await client.db("admin").command({ ping: 1 });
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
   } finally {
     // Ensures that the client will close when you finish/error
   }
