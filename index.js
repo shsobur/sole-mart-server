@@ -197,6 +197,22 @@ async function run() {
       res.send(result);
     })
 
+    // Get user cart__ __!
+    app.get("/carts/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = {userEmail: email};
+      const result = await cartCollection.find(query).toArray();
+      res.send(result);
+    })
+
+    // Delete user cart__ __!
+    app.delete("/cart/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const result = await cartCollection.deleteOne(query);
+      res.send(result);
+    })
+
     // Post user wishList__ __!
 
     app.post("/wish-list", async (req, res) => {
