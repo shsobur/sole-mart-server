@@ -38,13 +38,11 @@ const verifyToken = (req, res, next) => {
   });
 };
 
-const cookieOptions =  {
+const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production" ? true : false,
   sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-}
-
-
+};
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.g4yea9q.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -70,9 +68,7 @@ async function run() {
       const token = jwt.sign(user, process.env.ACCESS_TOKEN, {
         expiresIn: "10h",
       });
-      res
-        .cookie("accessToken", token, cookieOptions)
-        .send({ success: true });
+      res.cookie("accessToken", token, cookieOptions).send({ success: true });
     });
 
     // Logout__ __!
@@ -80,7 +76,9 @@ async function run() {
     app.post("/logout", async (req, res) => {
       const user = req.body;
       console.log(user);
-      res.clearCookie("accessToken", { ...cookieOptions, maxAge: 0 }).send({ success: true });
+      res
+        .clearCookie("accessToken", { ...cookieOptions, maxAge: 0 })
+        .send({ success: true });
     });
 
     // Post signup users__ __!
@@ -122,7 +120,7 @@ async function run() {
 
     // Post new product__ __!
 
-    app.post("/add-product", async (req, res) => {
+    app.post("/add-product", verifyToken, async (req, res) => {
       const item = req.body;
       const result = await productCollection.insertOne(item);
       res.send(result);
@@ -184,74 +182,60 @@ async function run() {
     });
 
     // Post user cart__ __!
-    app.post("/cart", async (req, res) => {
+    app.post("/cart", verifyToken, async (req, res) => {
       const item = req.body;
-      const existingProduct = await cartCollection.findOne({id: item.id, userEmail: item.userEmail});
-      
-      if(existingProduct) {
+      const existingProduct = await cartCollection.findOne({
+        id: item.id,
+        userEmail: item.userEmail,
+      });
+
+      if (existingProduct) {
         res.send({ message: "already exists" });
         return;
       }
 
       const result = await cartCollection.insertOne(item);
       res.send(result);
-    })
+    });
 
     // Get user cart__ __!
-    app.get("/carts/:email", async (req, res) => {
+    app.get("/carts/:email", verifyToken, async (req, res) => {
       const email = req.params.email;
-      const query = {userEmail: email};
+      const query = { userEmail: email };
       const result = await cartCollection.find(query).toArray();
       res.send(result);
-    })
+    });
 
     // Delete user cart__ __!
-    app.delete("/cart/:id", async (req, res) => {
+    app.delete("/cart/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const result = await cartCollection.deleteOne(query);
       res.send(result);
-    })
+    });
 
     // Post user wishList__ __!
 
     app.post("/wish-list", async (req, res) => {
       const item = req.body;
-      const existingProduct = await wishListCollection.findOne({id: item.id, email: item.email});
+      const existingProduct = await wishListCollection.findOne({
+        id: item.id,
+        email: item.email,
+      });
 
-      if(existingProduct) {
-        res.send({message: "already exists"});
+      if (existingProduct) {
+        res.send({ message: "already exists" });
         return;
       }
 
       const result = await wishListCollection.insertOne(item);
       res.send(result);
-    })
+    });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+    // await client.db("admin").command({ ping: 1 });
+    // console.log(
+    //   "Pinged your deployment. You successfully connected to MongoDB!"
+    // );
   } finally {
     // Ensures that the client will close when you finish/error
   }
